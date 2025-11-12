@@ -1,6 +1,8 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Redundant bracket" #-}
 
 module Project ( prove, proveCount ) where
-
+import Data.List
 import Sequent
 
 unMaybe :: Maybe [Sequent] -> [Sequent]
@@ -10,45 +12,45 @@ unMaybe Nothing = []
 isAxiom :: Sequent -> Bool
 isAxiom (xs :|=: ss) = any (`elem` ss) xs
 
-lConjunction :: Sequent -> Maybe [Sequent]
-lConjunction (((x :&&: xs) : ps) :|=: ss) = Just [x : xs : ps :|=: ss] 
-lConjunction p = Just [p]
+lConjunction :: Sequent -> Sequent
+lConjunction (((x :&&: xs) : y) :|=: (sec)) = (x : xs : y) :|=: (sec)           
+lConjunction ((t : (x :&&: xs) : r) :|=: (sec)) = (t : x : xs : r) :|=: (sec)
+lConjunction p = (p)
 
-rConjunction :: Sequent -> Maybe [Sequent]
-rConjunction (ss :|=: ((x :&&: xs) : ps)) = Just [ss :|=: x : ps, ss :|=: xs : ps]
-rConjunction p = Just [p]
+rConjunction :: Sequent -> [Sequent]
+rConjunction ((fir) :|=: ((x :&&: xs) : y)) = [(fir :|=: (x : y)) , (fir :|=: (xs : y))]
+rConjunction ((fir) :|=: (t : (x :&&: xs) : y)) = [(fir :|=: (t : x : y)) , (fir :|=: (t : xs : y))]
+rConjunction p = [p]
 
+lDisjunction :: Sequent -> [Sequent]
+lDisjunction (((x :||: xs) : y) :|=: (sec)) = [((x : y) :|=: sec),((xs : y):|=: sec)]
+lDisjunction (t : ((x :||: xs) : y) :|=: (sec)) = [((t : x : y) :|=: sec),((t : xs : y):|=: sec)]
+lDisjunction p = [p]
+
+rDisjunction :: Sequent -> Sequent
+rDisjunction ((fir) :|=: ((x :||: xs) : y)) = (fir) :|=: (x : xs : y)
+rDisjunction ((fir) :|=: (t : (x :||: xs) : y)) = (fir) :|=: (t : x : xs : y)
+rDisjunction p = p
+
+negation :: Sequent -> Sequent
+negation (((Not x) : xs) :|=: (sec)) = (xs) :|=: (x : sec)
+negation (((t : (Not x) : xs) :|=: (sec))) = (t : xs) :|=: (x : sec)
+negation ((fir) :|=: ((Not x) : xs)) = (x : fir) :|=: (xs)
+negation ((fir) :|=: (t : (Not x) : xs)) = (x : fir) :|=: (t : xs)
+negation p = p
 
 prove :: Sequent -> [Sequent]
 prove = undefined
 
 
-{-
-Sequent syntax 
-:|=: - |=  P entails Q where P
-:||: - V   P or Q
-:&&: - &&  P and Q
--}
-
--- Empty context entails a disjunction
-example1 :: Sequent
-example1 = [] :|=: [Var "A" :||: Var "B"]
-
--- Conjunction on the left entails one of its parts
-example2 :: Sequent
-example2 = [Var "A" :&&: Var "B"] :|=: [Var "A"]
-
--- An axiom sequent (same formula on both sides) 
-example3 :: Sequent
-example3 = [Var "A"] :|=: [Var "A", Var "B"]
-
-example4 :: Sequent
-example4 = [(Var "A" :&&: Var "B") :&&: Var "P"] :|=: [Var "A"]
-
-example5 :: Sequent
-example5 =[Var "A"] :|=: [(Var "A" :&&: Var "B") :&&: Var "P"]
-
--- for challenge part
+-- Examples:
+example1 = [] :|=: [ Var "a" :||: Var "b"]
+example2 = [ Var "a" :||: Var "b"] :|=: []
+example3 = [] :|=: [ Var "a" :&&: Var "b"]
+example4 = [ Var "a" :&&: Var "b"] :|=: []
+example5 = [] :|=: [Not (Var "a")]
+example6 = [Not (Var "a" :&&: Var "b")] :|=: []
+-- challenge examples here
 
 proveCount :: Sequent -> ([Sequent],Int)
 proveCount = undefined
