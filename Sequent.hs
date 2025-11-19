@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Redundant bracket" #-}
 module Sequent ( Name,
                Prop (Var, Not, (:||:), (:&&:), (:->:), (:<->:)),
                Sequent ( (:|=:) ) )
